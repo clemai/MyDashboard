@@ -4,38 +4,48 @@ import './App.css';
 import settings from './settings.json';
 
 
+function ImageWithText(oProp) {
+	return <div> <img src={oProp.oImage}></img> {oProp.oText} </div>
+}
 
-function WeatherForceast(oWeatherData) {
-	const oList = oWeatherData.list;
+function WeatherForceastRow(oProp) {
+	var aElements = [];
+	oProp.aItems.map((oItem) => {
+		aElements.push(<ImageWithText key={oItem.dt_txt} oImage={"http://openweathermap.org/img/w/" + oItem.weather[0].icon + ".png"}
+			oText={Math.round(oItem.main.temp) + "°C"}>
+		</ImageWithText>);
+	});
+	return <div className="ForeCastRow">{aElements}</div>;
+}
+
+function WeatherForceast(oProp) {
+	const aList = oProp.aWeatherList;
 	var mGroupbyDate = [];
-	oList.map((oItem) => {
+	var oRenderList = [];
+
+	aList.map((oItem) => {
 		var sDate = new Date(oItem.dt_txt).toDateString();
 		if (mGroupbyDate[sDate]) {
 			mGroupbyDate[sDate].push(oItem);
 		} else {
 			mGroupbyDate[sDate] = [oItem];
 		}
-	}
-	);
-	var oRenderList = [];
+	});
+
 	Object.keys(mGroupbyDate).forEach((sKey) => {
+
 		oRenderList.push(<li key={mGroupbyDate[sKey][0].dt_txt} > {
 			new Date(mGroupbyDate[sKey][0].dt_txt).toLocaleString(settings.locale, { weekday: 'long' })
-		}: {
-				mGroupbyDate[sKey].map((oItem) => {
-					return oItem.main.temp + "°C";
-				}).join(", ")}
+		}: <WeatherForceastRow aItems={mGroupbyDate[sKey]} key={mGroupbyDate[sKey][0].dt_txt}></WeatherForceastRow>
 		</li>)
 	});
-	return (<ul> {oRenderList} </ul>);
+	return <ul> {oRenderList} </ul>;
 }
-
-
 
 class App extends React.Component {
 
-	constructor(props) {
-		super(props);
+	constructor(oProps) {
+		super(oProps);
 		this.state = {
 			weather: {},
 			football: {}
@@ -70,15 +80,18 @@ class App extends React.Component {
 					<h2>My App</h2>
 				</div>
 				<p className="App-intro"></p>
-				<b>Last Update:</b> {new Date().toString()} <br></br>
-				<hr></hr>
-				<b>Heidelberg weather:</b>
+				<b>Weather forecast for {this.state.weather && this.state.weather.city ? this.state.weather.city.name : ""}:</b>
 				{
-					this.state.weather && this.state.weather.list && this.state.weather.list.length > 0 ? <WeatherForceast list={this.state.weather.list} /> : "Request failed"
+					this.state.weather && this.state.weather.list && this.state.weather.list.length > 0 ? <WeatherForceast aWeatherList={this.state.weather.list} /> : "Request failed"
 				}
 				<br></br>
 				<hr></hr>
-				<b>Next football game: </b>
+				<b>Next {this.state.football.Team1 ?
+					(settings.openliga.team === this.state.football.Team1 ?
+						this.state.football.Team1.TeamName :
+						this.state.football.Team2.TeamName) :
+					""
+				} game: </b>
 				{
 					this.state.football && this.state.football.Team1 && this.state.football.Team2 &&
 					<div>
@@ -86,6 +99,8 @@ class App extends React.Component {
 							<img src={this.state.football.Team2.TeamIconUrl}></img>{this.state.football.Team2.TeamName} on {this.state.football.MatchDateTime}
 					</div>
 				}
+				<hr></hr>
+				<b>Last Update:</b> {new Date().toString()} <br></br>
 			</div>
 		);
 	}
