@@ -1,16 +1,19 @@
-import React, { Component } from 'react';
+import React from 'react';
 import logo from './logo.svg';
 import './App.css';
 import settings from './settings.json';
 
-
-function ImageWithText(oProp) {
-	return <div> <img src={oProp.oImage}></img> {oProp.oText} </div>
+function formatDate(sDate) {
+	return new Date(sDate).toLocaleString(settings.locale, { weekday: 'long' })
 }
 
-function WeatherForceastRow(oProp) {
+function ImageWithText(oProps) {
+	return <div> <img role="presentation" src={oProps.oImage}></img> {oProps.oText} </div>
+}
+
+function WeatherForceastRow(oProps) {
 	var aElements = [];
-	oProp.aItems.map((oItem) => {
+	oProps.aItems.forEach((oItem) => {
 		aElements.push(<ImageWithText key={oItem.dt_txt} oImage={"http://openweathermap.org/img/w/" + oItem.weather[0].icon + ".png"}
 			oText={Math.round(oItem.main.temp) + "°C"}>
 		</ImageWithText>);
@@ -18,12 +21,12 @@ function WeatherForceastRow(oProp) {
 	return <div className="ForeCastRow">{aElements}</div>;
 }
 
-function WeatherForceast(oProp) {
-	const aList = oProp.aWeatherList;
+function WeatherForceast(oProps) {
+	const aList = oProps.aWeatherList;
 	var mGroupbyDate = [];
 	var oRenderList = [];
 
-	aList.map((oItem) => {
+	aList.forEach((oItem) => {
 		var sDate = new Date(oItem.dt_txt).toDateString();
 		if (mGroupbyDate[sDate]) {
 			mGroupbyDate[sDate].push(oItem);
@@ -35,7 +38,7 @@ function WeatherForceast(oProp) {
 	Object.keys(mGroupbyDate).forEach((sKey) => {
 
 		oRenderList.push(<li key={mGroupbyDate[sKey][0].dt_txt} > {
-			new Date(mGroupbyDate[sKey][0].dt_txt).toLocaleString(settings.locale, { weekday: 'long' })
+			formatDate(mGroupbyDate[sKey][0].dt_txt)
 		}: <WeatherForceastRow aItems={mGroupbyDate[sKey]} key={mGroupbyDate[sKey][0].dt_txt}></WeatherForceastRow>
 		</li>)
 	});
@@ -51,15 +54,15 @@ class App extends React.Component {
 			football: {}
 		};
 	}
-	componentDidMount() {
-		// TODO: fetch polyfill https://github.com/github/fetch
-		// TODO: Limit API calls
+
+	getWeatherData() {
 		fetch('http://api.openweathermap.org/data/2.5/forecast?units=metric&id=' + settings.openweather.cityId + '&appid=' + settings.openweather.id)
-			.then((response) => { return response.json() })
+			.then((oResponse) => { return oResponse.json() })
 			.then((oWeatherData) => {
 				this.setState({ weather: oWeatherData })
 			});
-
+	}
+	getFootballData() {
 		fetch('https://www.openligadb.de/api/getnextmatchbyleagueteam/' + settings.openliga.season + '/' + settings.openliga.team)
 			.then((oResponse) => { return oResponse.json() })
 			.then((oNextGameData) => {
@@ -69,6 +72,11 @@ class App extends React.Component {
 			});
 	}
 
+	componentDidMount() {
+		this.getWeatherData();
+		this.getFootballData();
+
+	}
 
 
 	render() {
@@ -86,17 +94,17 @@ class App extends React.Component {
 				}
 				<br></br>
 				<hr></hr>
-				<b>Next {this.state.football.Team1 ?
-					(settings.openliga.team === this.state.football.Team1 ?
-						this.state.football.Team1.TeamName :
-						this.state.football.Team2.TeamName) :
-					""
+				<b>Next {
+					this.state.football.Team1 ? (settings.openliga.team === this.state.football.Team1.TeamId ?
+						this.state.football.Team1.TeamName : this.state.football.Team2.TeamName) :
+						""
 				} game: </b>
 				{
 					this.state.football && this.state.football.Team1 && this.state.football.Team2 &&
 					<div>
-						<img src={this.state.football.Team1.TeamIconUrl}></img>{this.state.football.Team1.TeamName} vs.
-							<img src={this.state.football.Team2.TeamIconUrl}></img>{this.state.football.Team2.TeamName} on {this.state.football.MatchDateTime}
+						{formatDate(this.state.football.MatchDateTime)}:  <br></br>
+						<img role="presentation" src={this.state.football.Team1.TeamIconUrl}></img>{this.state.football.Team1.TeamName} vs.
+							<img role="presentation" src={this.state.football.Team2.TeamIconUrl}></img>{this.state.football.Team2.TeamName}
 					</div>
 				}
 				<hr></hr>
