@@ -3,14 +3,16 @@ import logo from './logo.svg';
 import './App.css';
 import settings from './settings.json';
 
+// General
 function formatDate(sDate) {
 	return new Date(sDate).toLocaleString(settings.locale, { weekday: 'long' })
 }
 
 function ImageWithText(oProps) {
-	return <div> <img role="presentation" src={oProps.oImage}></img> {oProps.oText} </div>
+	return <div> <img role="presentation" src={oProps.oImage} /> {oProps.oText} </div>
 }
 
+// Weather Forecast
 function WeatherForceastRow(oProps) {
 	var aElements = [];
 	oProps.aItems.forEach((oItem) => {
@@ -22,11 +24,10 @@ function WeatherForceastRow(oProps) {
 }
 
 function WeatherForceast(oProps) {
-	const aList = oProps.aWeatherList;
 	var mGroupbyDate = [];
 	var oRenderList = [];
 
-	aList.forEach((oItem) => {
+	oProps.aWeatherList.forEach((oItem) => {
 		var sDate = new Date(oItem.dt_txt).toDateString();
 		if (mGroupbyDate[sDate]) {
 			mGroupbyDate[sDate].push(oItem);
@@ -36,10 +37,68 @@ function WeatherForceast(oProps) {
 	});
 
 	Object.keys(mGroupbyDate).forEach((sKey) => {
-
 		oRenderList.push(<li key={mGroupbyDate[sKey][0].dt_txt} > {
 			formatDate(mGroupbyDate[sKey][0].dt_txt)
 		}: <WeatherForceastRow aItems={mGroupbyDate[sKey]} key={mGroupbyDate[sKey][0].dt_txt}></WeatherForceastRow>
+		</li>)
+	});
+	return <ul> {oRenderList} </ul>;
+}
+
+// Football Matches
+function FootballMatchRow(oProps) {
+	var mGoalScorers = new Map();
+	var aScore = [0, 0];
+
+	oProps.oMatch.Goals.forEach((oGoal) => {
+		aScore = [oGoal.ScoreTeam1, oGoal.ScoreTeam2];
+		if (!oGoal.GoalGetterName) {
+			oGoal.GoalGetterName = "No Name";
+		}
+		if (mGoalScorers.has(oGoal.GoalGetterName)) {
+			mGoalScorers.set(oGoal.GoalGetterName, mGoalScorers.get(oGoal.GoalGetterName) + " " + oGoal.MatchMinute + ".");
+		} else {
+			mGoalScorers.set(oGoal.GoalGetterName, oGoal.MatchMinute + ".");
+		}
+	});
+	var aScoreBoard = [];
+	mGoalScorers.forEach((value, key) => {
+		aScoreBoard.push(value + " " + key);
+	}, mGoalScorers);
+
+
+	return <div>
+		<img width="20" height="20" role="presentation" src={oProps.oMatch.Team1.TeamIconUrl} /> {aScore[0]} : {aScore[1] + " "}
+		<img width="20" height="20" role="presentation" src={oProps.oMatch.Team2.TeamIconUrl} />
+		{mGoalScorers.size ? "(" : ""}{aScoreBoard.join(", ")}{mGoalScorers.size ? ")" : ""}
+	</div>
+}
+
+function FootballMatchDay(oProps) {
+	var oRenderList = [];
+	oProps.aItems.forEach((oItem) => {
+		oRenderList.push(<FootballMatchRow key={oItem.MatchID} oMatch={oItem}></FootballMatchRow>)
+	});
+	return <div> {oRenderList} </div>;
+}
+
+function FootballMatches(oProps) {
+	var mGroupbyDate = [];
+	var oRenderList = [];
+
+	oProps.aMatches.forEach((oItem) => {
+		var sDate = new Date(oItem.MatchDateTime).toDateString();
+		if (mGroupbyDate[sDate]) {
+			mGroupbyDate[sDate].push(oItem);
+		} else {
+			mGroupbyDate[sDate] = [oItem];
+		}
+	});
+
+	Object.keys(mGroupbyDate).forEach((sKey) => {
+		oRenderList.push(<li key={mGroupbyDate[sKey][0].MatchDateTime} > {
+			formatDate(mGroupbyDate[sKey][0].MatchDateTime)
+		}: <FootballMatchDay aItems={mGroupbyDate[sKey]} key={mGroupbyDate[sKey][0].MatchDateTime}></FootballMatchDay>
 		</li>)
 	});
 	return <ul> {oRenderList} </ul>;
@@ -50,8 +109,8 @@ class App extends React.Component {
 	constructor(oProps) {
 		super(oProps);
 		this.state = {
-			weather: {},
-			football: {}
+			weather: undefined,
+			football: undefined
 		};
 	}
 
@@ -62,12 +121,13 @@ class App extends React.Component {
 				this.setState({ weather: oWeatherData })
 			});
 	}
+
 	getFootballData() {
-		fetch('https://www.openligadb.de/api/getnextmatchbyleagueteam/' + settings.openliga.season + '/' + settings.openliga.team)
+		fetch('https://www.openligadb.de/api/getmatchdata/' + settings.openliga.league)
 			.then((oResponse) => { return oResponse.json() })
-			.then((oNextGameData) => {
+			.then((oMatchData) => {
 				this.setState({
-					football: oNextGameData
+					football: oMatchData
 				})
 			});
 	}
@@ -75,12 +135,9 @@ class App extends React.Component {
 	componentDidMount() {
 		this.getWeatherData();
 		this.getFootballData();
-
 	}
 
-
 	render() {
-
 		return (
 			<div className="App">
 				<div className="App-header">
@@ -94,18 +151,9 @@ class App extends React.Component {
 				}
 				<br></br>
 				<hr></hr>
-				<b>Next {
-					this.state.football.Team1 ? (settings.openliga.team === this.state.football.Team1.TeamId ?
-						this.state.football.Team1.TeamName : this.state.football.Team2.TeamName) :
-						""
-				} game: </b>
+				<b>Current MatchDay: </b>
 				{
-					this.state.football && this.state.football.Team1 && this.state.football.Team2 &&
-					<div>
-						{formatDate(this.state.football.MatchDateTime)}:  <br></br>
-						<img role="presentation" src={this.state.football.Team1.TeamIconUrl}></img>{this.state.football.Team1.TeamName} vs.
-							<img role="presentation" src={this.state.football.Team2.TeamIconUrl}></img>{this.state.football.Team2.TeamName}
-					</div>
+					this.state.football ? <FootballMatches aMatches={this.state.football}></FootballMatches> : "No Data"
 				}
 				<hr></hr>
 				<b>Last Update:</b> {new Date().toString()} <br></br>
