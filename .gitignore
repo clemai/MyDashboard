@@ -3,22 +3,19 @@
 # dependencies
 node_modules
 
-# testing
-coverage
-
-# production
-build
-
 # misc
 .DS_Store
 .env
 npm-debug.log
 
-#settings
+# vs code
+.vscode
+
+# App
+src/App/*.js
 src/settings.json
-
-#testdata
 src/testdata/*
-
-#todo
 todo.md
+
+#Site
+static/index.html

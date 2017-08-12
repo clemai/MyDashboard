@@ -1,0 +1,12 @@
+{
+	"openweather": {
+		"id": "<getID>",
+		"cityId": "<getCityId>"
+	},
+	"openliga": {
+		"team": "134",
+		"league": "bl1",
+		"season": "3005"
+	},
+	"locale": "en"
+}

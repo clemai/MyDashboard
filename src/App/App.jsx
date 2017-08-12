@@ -1,7 +1,6 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
-import settings from './settings.json';
+var React = require('react');
+const LOGO_URL = 'logo.svg';
+var settings = require('../settings.json');
 
 // General
 function formatDate(sDate) {
@@ -16,7 +15,7 @@ function ImageWithText(oProps) {
 function WeatherForceastRow(oProps) {
 	var aElements = [];
 	oProps.aItems.forEach((oItem) => {
-		aElements.push(<ImageWithText key={oItem.dt_txt} oImage={"http://openweathermap.org/img/w/" + oItem.weather[0].icon + ".png"}
+		aElements.push(<ImageWithText key={oItem.dt_txt} oImage={"https://openweathermap.org/img/w/" + oItem.weather[0].icon + ".png"}
 			oText={Math.round(oItem.main.temp) + "°C"}>
 		</ImageWithText>);
 	});
@@ -51,27 +50,28 @@ function FootballMatchRow(oProps) {
 	var aScore = [0, 0];
 
 	oProps.oMatch.Goals.forEach((oGoal) => {
-		aScore = [oGoal.ScoreTeam1, oGoal.ScoreTeam2];
-		if (!oGoal.GoalGetterName) {
-			oGoal.GoalGetterName = "No Name";
-		}
-		if (mGoalScorers.has(oGoal.GoalGetterName)) {
-			mGoalScorers.set(oGoal.GoalGetterName, mGoalScorers.get(oGoal.GoalGetterName) + " " + oGoal.MatchMinute + ".");
-		} else {
-			mGoalScorers.set(oGoal.GoalGetterName, oGoal.MatchMinute + ".");
+		if (oGoal.MatchMinute) {
+			aScore = [oGoal.ScoreTeam1, oGoal.ScoreTeam2];
+			if (!oGoal.GoalGetterName) {
+				oGoal.GoalGetterName = "No Name";
+			}
+			if (mGoalScorers.has(oGoal.GoalGetterName)) {
+				mGoalScorers.set(oGoal.GoalGetterName, mGoalScorers.get(oGoal.GoalGetterName) + " " + oGoal.MatchMinute + ".");
+			} else {
+				mGoalScorers.set(oGoal.GoalGetterName, oGoal.MatchMinute + ".");
+			}
 		}
 	});
-	var aScoreBoard = [];
-	mGoalScorers.forEach((value, key) => {
-		aScoreBoard.push(value + " " + key);
-	}, mGoalScorers);
+var aScoreBoard = [];
+mGoalScorers.forEach((value, key) => {
+	aScoreBoard.push(value + " " + key);
+});
 
-
-	return <div>
-		<img width="20" height="20" role="presentation" src={oProps.oMatch.Team1.TeamIconUrl} /> {aScore[0]} : {aScore[1] + " "}
-		<img width="20" height="20" role="presentation" src={oProps.oMatch.Team2.TeamIconUrl} />
-		{mGoalScorers.size ? "(" : ""}{aScoreBoard.join(", ")}{mGoalScorers.size ? ")" : ""}
-	</div>
+return <div>
+	<img width="20" height="20" role="presentation" src={oProps.oMatch.Team1.TeamIconUrl} /> {aScore[0]} : {aScore[1] + " "}
+	<img width="20" height="20" role="presentation" src={oProps.oMatch.Team2.TeamIconUrl} />
+	{mGoalScorers.size ? "(" : ""}{aScoreBoard.join(", ")}{mGoalScorers.size ? ")" : ""}
+</div>
 }
 
 function FootballMatchDay(oProps) {
@@ -109,51 +109,31 @@ class App extends React.Component {
 	constructor(oProps) {
 		super(oProps);
 		this.state = {
-			weather: undefined,
-			football: undefined
+			weather: oProps.weather,
+			football: oProps.football
 		};
 	}
 
-	getWeatherData() {
-		fetch('http://api.openweathermap.org/data/2.5/forecast?units=metric&id=' + settings.openweather.cityId + '&appid=' + settings.openweather.id)
-			.then((oResponse) => { return oResponse.json() })
-			.then((oWeatherData) => {
-				this.setState({ weather: oWeatherData })
-			});
-	}
-
-	getFootballData() {
-		fetch('https://www.openligadb.de/api/getmatchdata/' + settings.openliga.league)
-			.then((oResponse) => { return oResponse.json() })
-			.then((oMatchData) => {
-				this.setState({
-					football: oMatchData
-				})
-			});
-	}
-
 	componentDidMount() {
-		this.getWeatherData();
-		this.getFootballData();
 	}
 
 	render() {
 		return (
 			<div className="App">
 				<div className="App-header">
-					<img src={logo} className="App-logo" alt="logo" />
+					<img src={LOGO_URL} className="App-logo" alt="logo" />
 					<h2>My App</h2>
 				</div>
 				<p className="App-intro"></p>
 				<b>Weather forecast for {this.state.weather && this.state.weather.city ? this.state.weather.city.name : ""}:</b>
 				{
-					this.state.weather && this.state.weather.list && this.state.weather.list.length > 0 ? <WeatherForceast aWeatherList={this.state.weather.list} /> : "Request failed"
+					this.state.weather && this.state.weather.list && this.state.weather.list.length > 0 ? <WeatherForceast aWeatherList={this.state.weather.list} /> : "No Data."
 				}
 				<br></br>
 				<hr></hr>
-				<b>Current MatchDay: </b>
+				<b>Next Football matches: </b>
 				{
-					this.state.football ? <FootballMatches aMatches={this.state.football}></FootballMatches> : "No Data"
+					this.state.football ? <FootballMatches aMatches={this.state.football}></FootballMatches> : "No Data."
 				}
 				<hr></hr>
 				<b>Last Update:</b> {new Date().toString()} <br></br>
@@ -162,4 +142,4 @@ class App extends React.Component {
 	}
 }
 
-export default App;
+module.exports = App;
