@@ -5,5 +5,9 @@ body {
 }
 
 .ForeCastRow{
-	display:flex
+	display: flex
+}
+
+.ImageWithText{
+	width: 50px;
 }

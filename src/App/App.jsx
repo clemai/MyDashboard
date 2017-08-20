@@ -4,11 +4,12 @@ var settings = require('../settings.json');
 
 // General
 function formatDate(sDate) {
+	// Node.js supports only 'en'
 	return new Date(sDate).toLocaleString(settings.locale, { weekday: 'long' })
 }
 
 function ImageWithText(oProps) {
-	return <div> <img role="presentation" src={oProps.oImage} /> {oProps.oText} </div>
+	return <div className="ImageWithText"> <img role="presentation" src={oProps.oImage} /> {oProps.oText} </div>
 }
 
 // Weather Forecast
@@ -67,7 +68,7 @@ mGoalScorers.forEach((value, key) => {
 	aScoreBoard.push(value + " " + key);
 });
 
-return <div>
+return <div className="FootballMatchRow">
 	<img width="20" height="20" role="presentation" src={oProps.oMatch.Team1.TeamIconUrl} /> {aScore[0]} : {aScore[1] + " "}
 	<img width="20" height="20" role="presentation" src={oProps.oMatch.Team2.TeamIconUrl} />
 	{mGoalScorers.size ? "(" : ""}{aScoreBoard.join(", ")}{mGoalScorers.size ? ")" : ""}
@@ -79,7 +80,7 @@ function FootballMatchDay(oProps) {
 	oProps.aItems.forEach((oItem) => {
 		oRenderList.push(<FootballMatchRow key={oItem.MatchID} oMatch={oItem}></FootballMatchRow>)
 	});
-	return <div> {oRenderList} </div>;
+	return <div className="FootballMatchDay"> {oRenderList} </div>;
 }
 
 function FootballMatches(oProps) {
@@ -131,7 +132,7 @@ class App extends React.Component {
 				}
 				<br></br>
 				<hr></hr>
-				<b>Next Football matches: </b>
+				<b>Football matches: </b>
 				{
 					this.state.football ? <FootballMatches aMatches={this.state.football}></FootballMatches> : "No Data."
 				}

@@ -1,5 +1,5 @@
 {
-	"name": "MyStaticDashboard",
+	"name": "mydashboard",
 	"version": "0.1.0",
 	"private": true,
 	"dependencies": {
@@ -10,6 +10,7 @@
 	},
 	"scripts": {
 		"start": "npm run jsxToJs && npm run server-side-rendering && npm run openStaticSite",
+		"dev": "npm run jsxToJs && npm run server-side-rendering",
 		"jsxToJs": "babel --plugins transform-react-jsx src --out-dir src -x .jsx",
 		"server-side-rendering": "node src/index.js",
 		"openStaticSite": "open static/index.html"
