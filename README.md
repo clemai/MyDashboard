@@ -1,11 +1,12 @@
 # Steps: 
-- Transpile jsx files to js files
+- Transpile `jsx` files to `js` files
 - Fetching data from different data services
 - React rendering app to html string
 - extend basic html content with string
 
 # Result: 
-Site with only static content (HTML, CSS)
+Site with only static content
+
 Example: https://clemai.github.io/MyDashboard/static/index_example.html
 
 # Getting started:
